@@ -1,0 +1,49 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "preLaunchTask": "cargo Debug build",
+      "type": "probe-rs-debug",
+      "request": "launch",
+      "name": "Debug",
+      "flashingConfig": {
+        "flashingEnabled": true,
+      },
+      "chip": "STM32F446ZE",
+      "coreConfigs": [
+        {
+          "programBinary": "./target/thumbv7em-none-eabi/debug/modellbahn",
+          "rttEnabled": true,
+          "rttChannelFormats": [
+            {
+              "channelNumber": 0,
+              "dataFormat": "Defmt",
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "preLaunchTask": "cargo Release build",
+      "type": "probe-rs-debug",
+      "request": "launch",
+      "name": "Debug Release",
+      "flashingConfig": {
+        "flashingEnabled": true,
+      },
+      "chip": "STM32F446ZE",
+      "coreConfigs": [
+        {
+          "programBinary": "./target/thumbv7em-none-eabi/release/modellbahn",
+          "rttEnabled": true,
+          "rttChannelFormats": [
+            {
+              "channelNumber": 0,
+              "dataFormat": "Defmt",
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

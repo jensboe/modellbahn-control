@@ -16,8 +16,10 @@ mod housekeeping;
 async fn main(spawner: Spawner) {
     let p = embassy_stm32::init(Default::default());
 
+    let led = Output::new(p.PB7.degrade(), Level::High, Speed::Low);
+
     spawner
-        .spawn(housekeeping::housekeeping::alive(p.PB7.degrade()))
+        .spawn(housekeeping::housekeeping::alive(led))
         .unwrap();
 
     let mut spi_config = spi::Config::default();

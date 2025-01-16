@@ -3,16 +3,19 @@
 
 use defmt::*;
 use embassy_executor::Spawner;
-use embassy_stm32::gpio::{Level, Output, Speed};
+use embassy_stm32::gpio::{Level, Output, Pin, Speed};
 use embassy_stm32::spi;
 use embassy_stm32::time::Hertz;
-use embassy_time::Timer;
+use embassy_time::{Duration, Ticker};
 use {defmt_rtt as _, panic_probe as _};
 
+mod housekeeping;
+
 #[embassy_executor::main]
-async fn main(_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     let p = embassy_stm32::init(Default::default());
-    let mut led = Output::new(p.PB7, Level::High, Speed::Low);
+
+    spawner.spawn(housekeeping::housekeeping::alive(p.PB7.degrade())).unwrap();
 
     let mut spi_config = spi::Config::default();
     spi_config.frequency = Hertz(1_000_000);
@@ -26,16 +29,15 @@ async fn main(_spawner: Spawner) {
     );
 
     let mut cs = Output::new(p.PD2, Level::Low, Speed::VeryHigh);
+    let mut ticker = Ticker::every(Duration::from_millis(50));
 
     loop {
-        led.set_high();
-        Timer::after_millis(300).await;
-        led.set_low();
-        Timer::after_millis(300).await;
         let mut buf = [0x0Au8; 4];
         cs.set_low();
         unwrap!(spi.blocking_transfer_in_place(&mut buf));
         cs.set_high();
-        info!("Read: {=[u8]:x}", buf);
+        info!("Refreshing I/O: {=[u8]:x}", buf);
+        ticker.next().await;
     }
 }
+

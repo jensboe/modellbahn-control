@@ -18,6 +18,7 @@
             {
               "channelNumber": 0,
               "dataFormat": "Defmt",
+              "logFormat": "{t:black} {L} {{F}:{l}%25} {s:werror}",
             }
           ]
         }
@@ -40,6 +41,7 @@
             {
               "channelNumber": 0,
               "dataFormat": "Defmt",
+              "logFormat": "{t:black} {L} {{F}:{l}%25} {s:werror}",
             }
           ]
         }

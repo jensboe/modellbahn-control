@@ -14,6 +14,8 @@ mod housekeeping;
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
+    println!("Hello, modellbahn speaking!");
+    info!("{}", env!("VERSION_STRING"));
     info!("Start tasks!");
     let p = embassy_stm32::init(Default::default());
 

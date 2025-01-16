@@ -7,13 +7,14 @@ use embassy_executor::Spawner;
 use embassy_stm32::gpio::{Level, Output, Pin, Speed};
 use embassy_stm32::spi;
 use embassy_stm32::time::Hertz;
-use embassy_time::{Duration, Ticker};
 use panic_probe as _;
 
+mod blockdriver;
 mod housekeeping;
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
+    info!("Start tasks!");
     let p = embassy_stm32::init(Default::default());
 
     let led = Output::new(p.PB7.degrade(), Level::High, Speed::Low);
@@ -25,17 +26,13 @@ async fn main(spawner: Spawner) {
     let mut spi_config = spi::Config::default();
     spi_config.frequency = Hertz(1_000_000);
 
-    let mut spi = spi::Spi::new_blocking(p.SPI3, p.PC10, p.PC12, p.PC11, spi_config);
+    let spi_config = spi::Config::default();
+    let spi = spi::Spi::new_blocking(p.SPI3, p.PC10, p.PC12, p.PC11, spi_config);
 
-    let mut cs = Output::new(p.PD2, Level::Low, Speed::VeryHigh);
-    let mut ticker = Ticker::every(Duration::from_millis(50));
+    let cs = Output::new(p.PD2, Level::Low, Speed::VeryHigh);
 
-    loop {
-        let mut buf = [0x0Au8; 4];
-        cs.set_low();
-        unwrap!(spi.blocking_transfer_in_place(&mut buf));
-        cs.set_high();
-        info!("Refreshing I/O: {=[u8]:x}", buf);
-        ticker.next().await;
-    }
+    spawner
+        .spawn(blockdriver::blockdriver::refresh(spi, cs))
+        .unwrap();
+    info!("All tasks spawned!");
 }

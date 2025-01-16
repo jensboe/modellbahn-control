@@ -2,12 +2,13 @@
 #![no_main]
 
 use defmt::*;
+use defmt_rtt as _;
 use embassy_executor::Spawner;
 use embassy_stm32::gpio::{Level, Output, Pin, Speed};
 use embassy_stm32::spi;
 use embassy_stm32::time::Hertz;
 use embassy_time::{Duration, Ticker};
-use {defmt_rtt as _, panic_probe as _};
+use panic_probe as _;
 
 mod housekeeping;
 
@@ -15,18 +16,14 @@ mod housekeeping;
 async fn main(spawner: Spawner) {
     let p = embassy_stm32::init(Default::default());
 
-    spawner.spawn(housekeeping::housekeeping::alive(p.PB7.degrade())).unwrap();
+    spawner
+        .spawn(housekeeping::housekeeping::alive(p.PB7.degrade()))
+        .unwrap();
 
     let mut spi_config = spi::Config::default();
     spi_config.frequency = Hertz(1_000_000);
-    
-    let mut spi = spi::Spi::new_blocking(
-        p.SPI3,
-        p.PC10,
-        p.PC12,
-        p.PC11,
-        spi_config,
-    );
+
+    let mut spi = spi::Spi::new_blocking(p.SPI3, p.PC10, p.PC12, p.PC11, spi_config);
 
     let mut cs = Output::new(p.PD2, Level::Low, Speed::VeryHigh);
     let mut ticker = Ticker::every(Duration::from_millis(50));
@@ -40,4 +37,3 @@ async fn main(spawner: Spawner) {
         ticker.next().await;
     }
 }
-

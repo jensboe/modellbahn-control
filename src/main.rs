@@ -27,8 +27,6 @@ async fn main(spawner: Spawner) {
 
     let mut spi_config = spi::Config::default();
     spi_config.frequency = Hertz(1_000_000);
-
-    let spi_config = spi::Config::default();
     let spi = spi::Spi::new_blocking(p.SPI3, p.PC10, p.PC12, p.PC11, spi_config);
 
     let cs = Output::new(p.PD2, Level::Low, Speed::VeryHigh);

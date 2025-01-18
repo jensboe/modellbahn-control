@@ -167,3 +167,40 @@ impl Track for Switch {
         [self.connection_common, self.connection_straight, self.connection_turnout, ""]
     }
 }
+
+pub struct Buffer {
+    pub id: &'static str,
+    pub connection: &'static str,
+}
+
+impl Track for Buffer {
+    fn id(&self) -> &str {
+        self.id
+    }
+
+    fn trace(&self) {
+        trace!("Buffer {}: connected with {}", self.id(), self.connection);
+    }
+
+    fn length(&self) -> u32 {
+        1
+    }
+
+    fn get_next_tracks(&self, previous_track: &str) -> [&str; 3] {
+        if previous_track == self.connection {
+            trace!("Buffer {}: from {} to end", self.id(), previous_track);
+            return ["", "", ""]
+        }
+        error!("Buffer {}: Not connected to {}", self.id, previous_track);
+        ["", "", ""]
+    }
+    
+    fn get_next_track(&self, previous_track: &str) -> &str {
+        if previous_track == self.connection {
+            trace!("Buffer {}: from {} to end", self.id(), previous_track);
+            return ""
+        }
+        error!("Buffer {}: Not connected to {}", self.id, previous_track);
+        ""
+    }
+}

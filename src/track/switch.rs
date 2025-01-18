@@ -16,7 +16,7 @@ pub struct Switch {
     pub length_straight: u32,
     pub connection_turnout: &'static str,
     pub length_turnout: u32,
-    pub state: SwitchState,
+    pub switch_state: SwitchState,
     pub power_state: super::PowerState,
 }
 impl Switch {
@@ -35,7 +35,7 @@ impl Switch {
             length_straight,
             connection_turnout,
             length_turnout,
-            state: SwitchState::Straight,
+            switch_state: SwitchState::Straight,
             power_state: PowerState::Off,
         }
     }
@@ -49,7 +49,7 @@ impl Track for Switch {
     fn debug_print(&self) {
         debug!("Switch   {}, current state: {}, length: {} going from {} straight to {} or turnover to {}, power_state: {:?}",
         self.id(),
-        self.state,
+        self.switch_state,
         self.length(),
         self.connection_common,
         self.connection_straight,
@@ -59,7 +59,7 @@ impl Track for Switch {
     }
 
     fn length(&self) -> u32 {
-        if self.state == SwitchState::Straight {
+        if self.switch_state == SwitchState::Straight {
             return self.length_straight;
         } else {
             return self.length_turnout;
@@ -101,7 +101,7 @@ impl Track for Switch {
 
     fn get_next_track(&self, previous_track: &str) -> &str {
         if previous_track == self.connection_common {
-            match self.state {
+            match self.switch_state {
                 SwitchState::Straight => {
                     trace!(
                         "Switch   {}: from {} straight to {}",

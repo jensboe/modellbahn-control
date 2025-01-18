@@ -9,7 +9,7 @@ pub struct Straight {
 }
 
 impl Straight {
-    pub fn new(
+    pub const fn new(
         id: &'static str,
         connection_a: &'static str,
         connection_b: &'static str,

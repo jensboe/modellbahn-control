@@ -19,7 +19,7 @@ pub struct Switch {
     pub state: SwitchState,
 }
 impl Switch {
-    pub fn new(
+    pub const fn new(
         id: &'static str,
         connection_common: &'static str,
         connection_straight: &'static str,

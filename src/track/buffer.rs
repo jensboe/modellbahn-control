@@ -9,7 +9,7 @@ pub struct Buffer {
     pub length: u32,
 }
 impl Buffer {
-    pub fn new(id: &'static str, connection: &'static str, length: u32) -> Self {
+    pub const fn new(id: &'static str, connection: &'static str, length: u32) -> Self {
         Self {
             id,
             connection,

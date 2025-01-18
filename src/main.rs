@@ -9,7 +9,10 @@ use embassy_stm32::spi;
 use embassy_stm32::time::Hertz;
 use embassy_time::{Duration, Timer};
 use panic_probe as _;
-use track::{Buffer, Straight, Switch, Track};
+use track::buffer::Buffer;
+use track::straight::Straight;
+use track::switch::Switch;
+use track::Track;
 
 mod blockdriver;
 mod housekeeping;

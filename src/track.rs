@@ -1,4 +1,4 @@
-use defmt::{error, trace};
+use defmt::{debug, error, trace};
 
 /// A trait representing a track in a model railway system.
 pub trait Track {
@@ -7,8 +7,13 @@ pub trait Track {
     /// # Returns
     /// A string slice that holds the identifier of the track.
     fn id(&self) -> &str;
-    fn trace(&self) {
-        trace!("Track {}: length: {}, connected with {}", self.id(), self.length(), self.get_connections());
+    fn debug_print(&self) {
+        debug!(
+            "Track {}: length: {}, connected with {}",
+            self.id(),
+            self.length(),
+            self.get_connections()
+        );
     }
 
     /// Returns the length of the track.
@@ -47,13 +52,37 @@ pub struct Straight {
     pub connection_b: &'static str,
 }
 
+impl Straight {
+    pub fn new(
+        id: &'static str,
+        connection_a: &'static str,
+        connection_b: &'static str,
+        length: u32,
+    ) -> Self {
+        Self {
+            id,
+            length,
+            connection_a,
+            connection_b,
+        }
+    }
+}
+
 impl Track for Straight {
+    // Constructor for Straight
+
     fn id(&self) -> &str {
-            self.id
+        self.id
     }
 
-    fn trace(&self) {
-        trace!("Straight {}: length: {}, connected with {} and {}", self.id(), self.length(), self.connection_a, self.connection_b);
+    fn debug_print(&self) {
+        debug!(
+            "Straight {}: length: {}, connected with {} and {}",
+            self.id(),
+            self.length(),
+            self.connection_a,
+            self.connection_b
+        );
     }
 
     fn length(&self) -> u32 {
@@ -62,25 +91,45 @@ impl Track for Straight {
 
     fn get_next_tracks(&self, previous_track: &str) -> [&str; 3] {
         if previous_track == self.connection_a {
-            trace!("Straight {}: from {} to {}", self.id(), previous_track, self.connection_b);
-            return [self.connection_b, "", ""]
+            trace!(
+                "Straight {}: from {} to {}",
+                self.id(),
+                previous_track,
+                self.connection_b
+            );
+            return [self.connection_b, "", ""];
         }
         if previous_track == self.connection_b {
-            trace!("Straight {}: from {} to {}", self.id(), previous_track, self.connection_a);
-            return [self.connection_a, "", ""]
+            trace!(
+                "Straight {}: from {} to {}",
+                self.id(),
+                previous_track,
+                self.connection_a
+            );
+            return [self.connection_a, "", ""];
         }
         error!("Straight {}: Not connected to {}", self.id, previous_track);
         ["", "", ""]
     }
-    
+
     fn get_next_track(&self, previous_track: &str) -> &str {
         if previous_track == self.connection_a {
-            trace!("Straight {}: from {} to {}", self.id(), previous_track, self.connection_b);
-            return self.connection_b
+            trace!(
+                "Straight {}: from {} to {}",
+                self.id(),
+                previous_track,
+                self.connection_b
+            );
+            return self.connection_b;
         }
         if previous_track == self.connection_b {
-            trace!("Straight {}: from {} to {}", self.id(), previous_track, self.connection_a);
-            return self.connection_a
+            trace!(
+                "Straight {}: from {} to {}",
+                self.id(),
+                previous_track,
+                self.connection_a
+            );
+            return self.connection_a;
         }
         error!("Straight {}: Not connected to {}", self.id, previous_track);
         ""
@@ -94,6 +143,7 @@ impl Track for Straight {
 pub enum SwitchState {
     Straight,
     Turnout,
+    Unknown,
 }
 
 pub struct Switch {
@@ -105,37 +155,72 @@ pub struct Switch {
     pub length_turnout: u32,
     pub state: SwitchState,
 }
+impl Switch {
+    pub fn new(
+        id: &'static str,
+        connection_common: &'static str,
+        connection_straight: &'static str,
+        connection_turnout: &'static str,
+        length_straight: u32,
+        length_turnout: u32,
+    ) -> Self {
+        Self {
+            id,
+            connection_common,
+            connection_straight,
+            length_straight,
+            connection_turnout,
+            length_turnout,
+            state: SwitchState::Straight,
+        }
+    }
+}
 
 impl Track for Switch {
     fn id(&self) -> &str {
         self.id
     }
-    
-    fn trace(&self) {
-        trace!("Switch   {}, current state: {}, length: {} going from {} straight to {} or turnover to {}", self.id(), self.state, self.length(), self.connection_common, self.connection_straight, self.connection_turnout);
+
+    fn debug_print(&self) {
+        debug!("Switch   {}, current state: {}, length: {} going from {} straight to {} or turnover to {}", self.id(), self.state, self.length(), self.connection_common, self.connection_straight, self.connection_turnout);
     }
 
     fn length(&self) -> u32 {
         if self.state == SwitchState::Straight {
-            return self.length_straight
-        }
-        else {
-            return self.length_turnout
+            return self.length_straight;
+        } else {
+            return self.length_turnout;
         }
     }
 
     fn get_next_tracks(&self, previous_track: &str) -> [&str; 3] {
         if previous_track == self.connection_common {
-            trace!("Switch   {}: from {} to {} or {}", self.id(), previous_track, self.connection_straight, self.connection_turnout);
-            return [self.connection_straight, self.connection_turnout, ""]
+            trace!(
+                "Switch   {}: from {} to {} or {}",
+                self.id(),
+                previous_track,
+                self.connection_straight,
+                self.connection_turnout
+            );
+            return [self.connection_straight, self.connection_turnout, ""];
         }
         if previous_track == self.connection_straight {
-            trace!("Switch   {}: from {} to {}", self.id(), previous_track, self.connection_common);
-            return [self.connection_common, "", ""]
+            trace!(
+                "Switch   {}: from {} to {}",
+                self.id(),
+                previous_track,
+                self.connection_common
+            );
+            return [self.connection_common, "", ""];
         }
         if previous_track == self.connection_turnout {
-            trace!("Switch   {}: from {} to {}", self.id(), previous_track, self.connection_common);
-            return [self.connection_common, "", ""]
+            trace!(
+                "Switch   {}: from {} to {}",
+                self.id(),
+                previous_track,
+                self.connection_common
+            );
+            return [self.connection_common, "", ""];
         }
         error!("Switch   {}: Not connected to {}", self.id, previous_track);
         ["", "", ""]
@@ -145,32 +230,61 @@ impl Track for Switch {
         if previous_track == self.connection_common {
             match self.state {
                 SwitchState::Straight => {
-                    trace!("Switch   {}: from {} straight to {}", self.id(), previous_track, self.connection_straight);
-                    return self.connection_straight
-                },
+                    trace!(
+                        "Switch   {}: from {} straight to {}",
+                        self.id(),
+                        previous_track,
+                        self.connection_straight
+                    );
+                    return self.connection_straight;
+                }
                 SwitchState::Turnout => {
-                    trace!("Switch   {}: from {} turnout to {}", self.id(), previous_track, self.connection_turnout);
-                    return self.connection_turnout
+                    trace!(
+                        "Switch   {}: from {} turnout to {}",
+                        self.id(),
+                        previous_track,
+                        self.connection_turnout
+                    );
+                    return self.connection_turnout;
+                }
+                SwitchState::Unknown => {
+                    error!("Switch   {}: Unknown state", self.id);
+                    return "";
                 }
             }
         }
         if previous_track == self.connection_straight {
-            return self.connection_common
+            return self.connection_common;
         }
         if previous_track == self.connection_turnout {
-            return self.connection_common
+            return self.connection_common;
         }
         error!("Switch   {}: Not connected to {}", self.id, previous_track);
         ""
     }
     fn get_connections(&self) -> [&str; 4] {
-        [self.connection_common, self.connection_straight, self.connection_turnout, ""]
+        [
+            self.connection_common,
+            self.connection_straight,
+            self.connection_turnout,
+            "",
+        ]
     }
 }
 
 pub struct Buffer {
     pub id: &'static str,
     pub connection: &'static str,
+    pub length: u32,
+}
+impl Buffer {
+    pub fn new(id: &'static str, connection: &'static str, length: u32) -> Self {
+        Self {
+            id,
+            connection,
+            length,
+        }
+    }
 }
 
 impl Track for Buffer {
@@ -178,8 +292,13 @@ impl Track for Buffer {
         self.id
     }
 
-    fn trace(&self) {
-        trace!("Buffer {}: connected with {}", self.id(), self.connection);
+    fn debug_print(&self) {
+        debug!(
+            "Buffer {}: length: {}, connected with {}",
+            self.id(),
+            self.length,
+            self.connection
+        );
     }
 
     fn length(&self) -> u32 {
@@ -189,16 +308,16 @@ impl Track for Buffer {
     fn get_next_tracks(&self, previous_track: &str) -> [&str; 3] {
         if previous_track == self.connection {
             trace!("Buffer {}: from {} to end", self.id(), previous_track);
-            return ["", "", ""]
+            return ["", "", ""];
         }
         error!("Buffer {}: Not connected to {}", self.id, previous_track);
         ["", "", ""]
     }
-    
+
     fn get_next_track(&self, previous_track: &str) -> &str {
         if previous_track == self.connection {
             trace!("Buffer {}: from {} to end", self.id(), previous_track);
-            return ""
+            return "";
         }
         error!("Buffer {}: Not connected to {}", self.id, previous_track);
         ""

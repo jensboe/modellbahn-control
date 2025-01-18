@@ -66,4 +66,8 @@ pub trait Track {
     /// # Returns
     /// The power state of the track.
     fn get_power_state(&self) -> PowerState;
+
+    fn is_plattform(&self) -> bool {
+        false
+    }
 }

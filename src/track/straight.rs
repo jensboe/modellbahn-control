@@ -7,6 +7,7 @@ pub struct Straight {
     pub connection_a: &'static str,
     pub connection_b: &'static str,
     pub power_state: PowerState,
+    pub is_pattform: bool,
 }
 
 impl Straight {
@@ -22,6 +23,24 @@ impl Straight {
             connection_a,
             connection_b,
             power_state: PowerState::Off,
+            is_pattform: false,
+        }
+    }
+    
+    pub const fn new_platform(
+        id: &'static str,
+        connection_a: &'static str,
+        connection_b: &'static str,
+        length: u32,
+        
+    ) -> Self {
+        Self {
+            id,
+            length,
+            connection_a,
+            connection_b,
+            power_state: PowerState::Off,
+            is_pattform: true,
         }
     }
 }
@@ -98,5 +117,8 @@ impl Track for Straight {
     }
     fn get_power_state(&self) -> PowerState {
         self.power_state
+    }
+    fn is_plattform(&self) -> bool {
+        self.is_pattform
     }
 }

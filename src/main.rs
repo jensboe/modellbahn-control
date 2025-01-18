@@ -46,12 +46,13 @@ async fn main(spawner: Spawner) {
 
     let mut previous_track = TRACK_LAYOUT.iter().find(|track| track.id() == "C_3a").unwrap();
     let mut current_track = TRACK_LAYOUT.iter().find(|track| track.id() == "C_3b").unwrap();
+    let mut next_track = current_track.get_next_track(previous_track.id());
     loop {
-        current_track.debug_print();
-        let next_track = current_track.get_next_track(previous_track.id());
-        debug!("Next:    {}", next_track);
-        Timer::after(Duration::from_millis(current_track.length().into())).await;
         previous_track = current_track;
         current_track = TRACK_LAYOUT.iter().find(|track| track.id() == next_track).unwrap();
+        current_track.debug_print();
+        Timer::after(Duration::from_millis(current_track.length().into())).await;
+        next_track = current_track.get_next_track(previous_track.id());
+        debug!("Next:    {}", next_track);
     }
 }

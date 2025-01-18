@@ -1,11 +1,12 @@
 use defmt::{debug, error, trace};
 
-use super::Track;
+use super::{Track, PowerState};
 pub struct Straight {
     pub id: &'static str,
     pub length: u32,
     pub connection_a: &'static str,
     pub connection_b: &'static str,
+    pub power_state: PowerState,
 }
 
 impl Straight {
@@ -20,6 +21,7 @@ impl Straight {
             length,
             connection_a,
             connection_b,
+            power_state: PowerState::Off,
         }
     }
 }
@@ -33,11 +35,12 @@ impl Track for Straight {
 
     fn debug_print(&self) {
         debug!(
-            "Straight {}: length: {}, connected with {} and {}",
+            "Straight {}: length: {}, connected with {} and {}, power state: {:?}",
             self.id(),
             self.length(),
             self.connection_a,
-            self.connection_b
+            self.connection_b,
+            self.power_state
         );
     }
 
@@ -92,5 +95,8 @@ impl Track for Straight {
     }
     fn get_connections(&self) -> [&str; 4] {
         [self.connection_a, self.connection_b, "", ""]
+    }
+    fn get_power_state(&self) -> PowerState {
+        self.power_state
     }
 }

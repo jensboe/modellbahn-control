@@ -1,6 +1,6 @@
 use defmt::{debug, error, trace};
 
-use super::Track;
+use super::{PowerState, Track};
 
 #[derive(PartialEq, defmt::Format)]
 pub enum SwitchState {
@@ -17,6 +17,7 @@ pub struct Switch {
     pub connection_turnout: &'static str,
     pub length_turnout: u32,
     pub state: SwitchState,
+    pub power_state: super::PowerState,
 }
 impl Switch {
     pub const fn new(
@@ -35,6 +36,7 @@ impl Switch {
             connection_turnout,
             length_turnout,
             state: SwitchState::Straight,
+            power_state: PowerState::Off,
         }
     }
 }
@@ -45,7 +47,15 @@ impl Track for Switch {
     }
 
     fn debug_print(&self) {
-        debug!("Switch   {}, current state: {}, length: {} going from {} straight to {} or turnover to {}", self.id(), self.state, self.length(), self.connection_common, self.connection_straight, self.connection_turnout);
+        debug!("Switch   {}, current state: {}, length: {} going from {} straight to {} or turnover to {}, power_state: {:?}",
+        self.id(),
+        self.state,
+        self.length(),
+        self.connection_common,
+        self.connection_straight,
+        self.connection_turnout,
+        self.power_state
+    );
     }
 
     fn length(&self) -> u32 {
@@ -132,5 +142,8 @@ impl Track for Switch {
             self.connection_turnout,
             "",
         ]
+    }
+    fn get_power_state(&self) -> PowerState {
+        self.power_state
     }
 }

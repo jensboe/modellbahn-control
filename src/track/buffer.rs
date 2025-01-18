@@ -1,12 +1,13 @@
 use defmt::{debug, error, trace};
 
-use super::Track;
+use super::{Track, PowerState};
 
 
 pub struct Buffer {
     pub id: &'static str,
     pub connection: &'static str,
     pub length: u32,
+    pub power_state: PowerState,
 }
 impl Buffer {
     pub const fn new(id: &'static str, connection: &'static str, length: u32) -> Self {
@@ -14,6 +15,7 @@ impl Buffer {
             id,
             connection,
             length,
+            power_state: PowerState::Off,
         }
     }
 }
@@ -25,10 +27,11 @@ impl Track for Buffer {
 
     fn debug_print(&self) {
         debug!(
-            "Buffer {}: length: {}, connected with {}",
+            "Buffer {}: length: {}, connected with {}, power state: {:?}",
             self.id(),
             self.length,
-            self.connection
+            self.connection,
+            self.power_state
         );
     }
 
@@ -52,5 +55,11 @@ impl Track for Buffer {
         }
         error!("Buffer {}: Not connected to {}", self.id, previous_track);
         ""
+    }
+    fn get_connections(&self) -> [&str; 4] {
+        [self.connection, "", "", ""]
+    }
+    fn get_power_state(&self) -> PowerState {
+        self.power_state
     }
 }

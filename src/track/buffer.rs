@@ -1,65 +1,64 @@
-use defmt::{debug, error, trace};
+use defmt::{error, trace};
 
-use super::{Track, PowerState};
+use super::{BaseTrack, OccupiedState, Track, PowerState};
 
 
 pub struct Buffer {
-    pub id: &'static str,
+    pub base: BaseTrack,
     pub connection: &'static str,
     pub length: u32,
-    pub power_state: PowerState,
 }
 impl Buffer {
     pub const fn new(id: &'static str, connection: &'static str, length: u32) -> Self {
         Self {
-            id,
+            base: BaseTrack::new(id),
             connection,
             length,
-            power_state: PowerState::Off,
         }
     }
 }
 
 impl Track for Buffer {
-    fn id(&self) -> &str {
-        self.id
+    fn power_state(&self) -> PowerState {
+        self.base.power_state()
+    }
+    fn set_power_state(&mut self, power_state: PowerState) {
+        self.base.set_power_state(power_state);
     }
 
-    fn debug_print(&self) {
-        debug!(
-            "Buffer {}: length: {}, connected with {}, power state: {:?}",
-            self.id(),
-            self.length,
-            self.connection,
-            self.power_state
-        );
+    fn occupied_state(&self) -> OccupiedState {
+        self.base.occupied_state()
+    }
+
+    fn id(&self) -> &str {
+        self.base.id()
     }
 
     fn length(&self) -> u32 {
-        1
+        self.length
     }
 
-    fn get_next_tracks(&self, previous_track: &str) -> [&str; 3] {
+    fn next_tracks(&self, previous_track: &str) -> [&str; 3] {
         if previous_track == self.connection {
             trace!("Buffer {}: from {} to end", self.id(), previous_track);
             return ["", "", ""];
         }
-        error!("Buffer {}: Not connected to {}", self.id, previous_track);
+        error!("Buffer {}: Not connected to {}", self.id(), previous_track);
         ["", "", ""]
     }
 
-    fn get_next_track(&self, previous_track: &str) -> &str {
+    fn next_track(&self, previous_track: &str) -> &'static str {
         if previous_track == self.connection {
             trace!("Buffer {}: from {} to end", self.id(), previous_track);
             return "";
         }
-        error!("Buffer {}: Not connected to {}", self.id, previous_track);
+        error!("Buffer {}: Not connected to {}", self.id(), previous_track);
         ""
     }
-    fn get_connections(&self) -> [&str; 4] {
+    fn connections(&self) -> [&str; 4] {
         [self.connection, "", "", ""]
     }
-    fn get_power_state(&self) -> PowerState {
-        self.power_state
+    fn planing_state(&self) -> super::PlaningState {
+        self.base.planing_state()
     }
 }

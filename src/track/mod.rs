@@ -2,7 +2,8 @@ pub mod switch;
 pub mod straight;
 pub mod buffer;
 
-use defmt::debug;
+
+use defmt::{debug, error};
 
 
 #[derive(Clone,Copy, defmt::Format)]
@@ -10,64 +11,106 @@ pub enum PowerState {
     Off,
     On,
 }
+#[derive(Clone,Copy, defmt::Format)]
+pub enum PlaningState {
+    Unused,
+    Planed,
+    Locked,
+}
+#[derive(Clone,Copy, defmt::Format)]
+pub enum OccupiedState {
+    Free,
+    Occupied,
+    Locked,
+    Unknown
+}
 
-/// A trait representing a track in a model railway system.
 pub trait Track {
-    /// Returns the identifier of the track.
-    ///
-    /// # Returns
-    /// A string slice that holds the identifier of the track.
+    fn power_state(&self) -> PowerState;
+    fn set_power_state(&mut self, power_state: PowerState);
+
+    fn occupied_state(&self) -> OccupiedState;
+
     fn id(&self) -> &str;
 
-    /// Prints debug information about the track.
     fn debug_print(&self) {
         debug!(
-            "Track {}: length: {}, connected with {}",
+            "Track {}: planing state: {:?}, connections: {:?}",
             self.id(),
-            self.length(),
-            self.get_connections()
+            self.planing_state(),
+            self.connections()
         );
     }
 
-    /// Returns the length of the track.
-    ///
-    /// # Returns
-    /// A 32-bit unsigned integer representing the length of the track.
-    fn length(&self) -> u32;
-
-    /// Returns the next possible tracks from the current track.
-    ///
-    /// # Parameters
-    /// - `previous_track`: A string slice that holds the identifier of the previous track.
-    ///
-    /// # Returns
-    /// An array of string slices representing the identifiers of the next possible tracks.
-    fn get_next_tracks(&self, previous_track: &str) -> [&str; 3];
-
-    /// Returns the next track from the current track.
-    ///
-    /// # Parameters
-    /// - `previous_track`: A string slice that holds the identifier of the previous track.
-    ///
-    /// # Returns
-    /// A string slice representing the identifier of the next track.
-    fn get_next_track(&self, previous_track: &str) -> &str;
-
-    /// Returns the connections of the track.
-    ///
-    /// # Returns
-    /// An array of string slices representing the identifiers of the connected tracks.
-    fn get_connections(&self) -> [&str; 4] {
+    fn next_tracks(&self, previous_track: &str) -> [&str; 3];
+    
+    fn next_track(&self, previous_track: &str) -> &'static str;
+    
+    fn connections(&self) -> [&str; 4] {
         ["", "", "", ""]
     }
-
-    /// Returns the power state of the track.
-    ///
-    /// # Returns
-    /// The power state of the track.
-    fn get_power_state(&self) -> PowerState;
-
     fn is_plattform(&self) -> bool {
         false
     }
+    fn planing_state(&self) -> PlaningState;
+    fn length(&self) -> u32;
+
+}
+
+pub struct BaseTrack {
+    id: &'static str,
+    power_state: PowerState,
+    occupied_state: OccupiedState,
+    planing_state: PlaningState,
+}
+impl BaseTrack {
+    pub const fn new(id: &'static str) -> Self {
+        Self {
+            id,
+            power_state: PowerState::Off,
+            occupied_state: OccupiedState::Unknown,
+            planing_state: PlaningState::Unused,
+        }
+    }
+}
+impl Track for BaseTrack {
+    fn power_state(&self) -> PowerState {
+        self.power_state
+    }
+    fn set_power_state(&mut self, power_state: PowerState) {
+        self.power_state = power_state;
+    }
+
+    fn occupied_state(&self) -> OccupiedState {
+        self.occupied_state
+    }
+
+    fn id(&self) -> &str {
+        self.id
+    }
+
+    fn next_tracks(&self, previous_track: &str) -> [&str; 3] {
+        if previous_track == self.id {
+            return ["", "", ""];
+        }
+        error!("Track {}: Not connected to {}", self.id, previous_track);
+        ["", "", ""]
+    }
+
+    fn next_track(&self, previous_track: &str) -> &'static str {
+        if previous_track == self.id {
+            return "";
+        }
+        error!("Track {}: Not connected to {}", self.id, previous_track);
+        ""
+    }
+
+    fn planing_state(&self) -> PlaningState {
+        self.planing_state
+    }
+
+    fn length(&self) -> u32 {
+        10
+    }
+    
 }

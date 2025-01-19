@@ -1,12 +1,11 @@
-use defmt::{debug, error, trace};
+use defmt::{error, trace};
 
-use super::{Track, PowerState};
+use super::{BaseTrack, OccupiedState, Track, PowerState};
 pub struct Straight {
-    pub id: &'static str,
+    pub base: BaseTrack,
     pub length: u32,
     pub connection_a: &'static str,
     pub connection_b: &'static str,
-    pub power_state: PowerState,
     pub is_pattform: bool,
 }
 
@@ -18,11 +17,10 @@ impl Straight {
         length: u32,
     ) -> Self {
         Self {
-            id,
+            base: BaseTrack::new(id),
             length,
             connection_a,
             connection_b,
-            power_state: PowerState::Off,
             is_pattform: false,
         }
     }
@@ -35,39 +33,39 @@ impl Straight {
         
     ) -> Self {
         Self {
-            id,
+            base: BaseTrack::new(id),
             length,
             connection_a,
             connection_b,
-            power_state: PowerState::Off,
             is_pattform: true,
         }
     }
 }
 
 impl Track for Straight {
-    // Constructor for Straight
+    fn power_state(&self) -> PowerState {
+        self.base.power_state()
+    }
+    fn set_power_state(&mut self, power_state: PowerState) {
+        self.base.set_power_state(power_state);
+    }
+    fn occupied_state(&self) -> OccupiedState {
+        self.base.occupied_state()
+    }
 
     fn id(&self) -> &str {
-        self.id
+        self.base.id()
     }
 
     fn debug_print(&self) {
-        debug!(
-            "Straight {}: length: {}, connected with {} and {}, power state: {:?}",
-            self.id(),
-            self.length(),
-            self.connection_a,
-            self.connection_b,
-            self.power_state
-        );
+        self.base.debug_print();
     }
 
     fn length(&self) -> u32 {
         self.length
     }
 
-    fn get_next_tracks(&self, previous_track: &str) -> [&str; 3] {
+    fn next_tracks(&self, previous_track: &str) -> [&str; 3] {
         if previous_track == self.connection_a {
             trace!(
                 "Straight {}: from {} to {}",
@@ -86,11 +84,11 @@ impl Track for Straight {
             );
             return [self.connection_a, "", ""];
         }
-        error!("Straight {}: Not connected to {}", self.id, previous_track);
+        error!("Straight {}: Not connected to {}", self.id(), previous_track);
         ["", "", ""]
     }
 
-    fn get_next_track(&self, previous_track: &str) -> &str {
+    fn next_track(&self, previous_track: &str) -> &'static str {
         if previous_track == self.connection_a {
             trace!(
                 "Straight {}: from {} to {}",
@@ -109,16 +107,18 @@ impl Track for Straight {
             );
             return self.connection_a;
         }
-        error!("Straight {}: Not connected to {}", self.id, previous_track);
+        error!("Straight {}: Not connected to {}", self.id(), previous_track);
         ""
     }
-    fn get_connections(&self) -> [&str; 4] {
+    fn connections(&self) -> [&str; 4] {
         [self.connection_a, self.connection_b, "", ""]
     }
-    fn get_power_state(&self) -> PowerState {
-        self.power_state
-    }
+
     fn is_plattform(&self) -> bool {
         self.is_pattform
     }
+    fn planing_state(&self) -> super::PlaningState {
+        self.base.planing_state()
+    }
+
 }

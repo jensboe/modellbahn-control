@@ -1,8 +1,8 @@
-use defmt::{debug, error, trace};
+use defmt::{error, trace};
 
-use super::{PowerState, Track};
+use super::{BaseTrack, OccupiedState, Track, PowerState};
 
-#[derive(PartialEq, defmt::Format)]
+#[derive(Clone,Copy, PartialEq, defmt::Format)]
 pub enum SwitchState {
     Straight,
     Turnout,
@@ -10,14 +10,13 @@ pub enum SwitchState {
 }
 
 pub struct Switch {
-    pub id: &'static str,
+    pub base: BaseTrack,
     pub connection_common: &'static str,
     pub connection_straight: &'static str,
     pub length_straight: u32,
     pub connection_turnout: &'static str,
     pub length_turnout: u32,
     pub switch_state: SwitchState,
-    pub power_state: super::PowerState,
 }
 impl Switch {
     pub const fn new(
@@ -29,44 +28,48 @@ impl Switch {
         length_turnout: u32,
     ) -> Self {
         Self {
-            id,
+            base: BaseTrack::new(id),
             connection_common,
             connection_straight,
             length_straight,
             connection_turnout,
             length_turnout,
             switch_state: SwitchState::Straight,
-            power_state: PowerState::Off,
         }
+    }
+}
+impl Switch {
+    pub fn switch_state(&self) -> SwitchState {
+        self.switch_state
+    }
+    pub fn set_switch_state(&mut self, switch_state: SwitchState) {
+        self.switch_state = switch_state;
     }
 }
 
 impl Track for Switch {
-    fn id(&self) -> &str {
-        self.id
+    fn power_state(&self) -> PowerState {
+        self.base.power_state()
     }
-
-    fn debug_print(&self) {
-        debug!("Switch   {}, current state: {}, length: {} going from {} straight to {} or turnover to {}, power_state: {:?}",
-        self.id(),
-        self.switch_state,
-        self.length(),
-        self.connection_common,
-        self.connection_straight,
-        self.connection_turnout,
-        self.power_state
-    );
+    fn set_power_state(&mut self, power_state: PowerState) {
+        self.base.set_power_state(power_state);
+    }
+    fn occupied_state(&self) -> OccupiedState {
+        self.base.occupied_state()
+    }
+    fn id(&self) -> &str {
+        self.base.id
     }
 
     fn length(&self) -> u32 {
-        if self.switch_state == SwitchState::Straight {
+        if self.switch_state() == SwitchState::Straight {
             return self.length_straight;
         } else {
             return self.length_turnout;
         }
     }
 
-    fn get_next_tracks(&self, previous_track: &str) -> [&str; 3] {
+    fn next_tracks(&self, previous_track: &str) -> [&str; 3] {
         if previous_track == self.connection_common {
             trace!(
                 "Switch   {}: from {} to {} or {}",
@@ -95,11 +98,11 @@ impl Track for Switch {
             );
             return [self.connection_common, "", ""];
         }
-        error!("Switch   {}: Not connected to {}", self.id, previous_track);
+        error!("Switch   {}: Not connected to {}", self.id(), previous_track);
         ["", "", ""]
     }
 
-    fn get_next_track(&self, previous_track: &str) -> &str {
+    fn next_track(&self, previous_track: &str) -> &'static str  {
         if previous_track == self.connection_common {
             match self.switch_state {
                 SwitchState::Straight => {
@@ -121,7 +124,7 @@ impl Track for Switch {
                     return self.connection_turnout;
                 }
                 SwitchState::Unknown => {
-                    error!("Switch   {}: Unknown state", self.id);
+                    error!("Switch   {}: Unknown state", self.id());
                     return "";
                 }
             }
@@ -132,10 +135,10 @@ impl Track for Switch {
         if previous_track == self.connection_turnout {
             return self.connection_common;
         }
-        error!("Switch   {}: Not connected to {}", self.id, previous_track);
+        error!("Switch   {}: Not connected to {}", self.id(), previous_track);
         ""
     }
-    fn get_connections(&self) -> [&str; 4] {
+    fn connections(&self) -> [&str; 4] {
         [
             self.connection_common,
             self.connection_straight,
@@ -143,7 +146,7 @@ impl Track for Switch {
             "",
         ]
     }
-    fn get_power_state(&self) -> PowerState {
-        self.power_state
+    fn planing_state(&self) -> super::PlaningState {
+        self.base.planing_state()
     }
 }

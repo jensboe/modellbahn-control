@@ -16,7 +16,7 @@ mod track;
 
 mod track_layout;
 use track::PowerState;
-
+use track_layout::find_route;
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -40,7 +40,6 @@ async fn main(spawner: Spawner) {
     spawner
         .spawn(blockdriver::blockdriver::refresh(spi, cs))
         .unwrap();
-    
 
     info!("All tasks spawned!");
 
@@ -52,6 +51,22 @@ async fn main(spawner: Spawner) {
 
     let mut current_track_id = "C_3b";
     let mut previous_track_id = "C_3a";
+    let destination_track_id = "A_3b";
+    let total_distance = 0;
+    info!(
+        "Searching shortest route from {} to {}",
+        current_track_id, destination_track_id
+    );
+    let routing_distance = find_route(
+        destination_track_id,
+        current_track_id,
+        previous_track_id,
+        total_distance,
+    );
+    info!(
+        "shortest route from {} to {} is {}",
+        current_track_id, destination_track_id, routing_distance
+    );
     let mut next_track_id = "";
     let mut wait_time = 0;
     loop {
@@ -60,7 +75,12 @@ async fn main(spawner: Spawner) {
                 track.set_power_state(PowerState::On);
                 next_track_id = track.next_track(previous_track_id);
                 wait_time = track.length();
-                debug!("Driving from {} to {}, will take {}ms", track.id(), next_track_id, wait_time);
+                info!(
+                    "Driving from {} to {}, will take {}ms",
+                    track.id(),
+                    next_track_id,
+                    wait_time
+                );
             }
         }
         for track in track_layout.iter_mut() {
@@ -72,6 +92,5 @@ async fn main(spawner: Spawner) {
         Timer::after(Duration::from_millis(wait_time.into())).await;
         previous_track_id = current_track_id;
         current_track_id = next_track_id;
-    }    
+    }
 }
-

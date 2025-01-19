@@ -65,7 +65,7 @@ impl Track for Straight {
         self.length
     }
 
-    fn next_tracks(&self, previous_track: &str) -> [&str; 3] {
+    fn next_tracks(&self, previous_track: &str) -> [&'static str; 3] {
         if previous_track == self.connection_a {
             trace!(
                 "Straight {}: from {} to {}",

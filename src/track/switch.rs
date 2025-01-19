@@ -69,7 +69,7 @@ impl Track for Switch {
         }
     }
 
-    fn next_tracks(&self, previous_track: &str) -> [&str; 3] {
+    fn next_tracks(&self, previous_track: &str) -> [&'static str; 3] {
         if previous_track == self.connection_common {
             trace!(
                 "Switch   {}: from {} to {} or {}",

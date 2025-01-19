@@ -42,7 +42,7 @@ pub trait Track {
         );
     }
 
-    fn next_tracks(&self, previous_track: &str) -> [&str; 3];
+    fn next_tracks(&self, previous_track: &str) -> [&'static str; 3];
     
     fn next_track(&self, previous_track: &str) -> &'static str;
     
@@ -89,7 +89,7 @@ impl Track for BaseTrack {
         self.id
     }
 
-    fn next_tracks(&self, previous_track: &str) -> [&str; 3] {
+    fn next_tracks(&self, previous_track: &str) -> [&'static str; 3] {
         if previous_track == self.id {
             return ["", "", ""];
         }

@@ -38,7 +38,7 @@ impl Track for Buffer {
         self.length
     }
 
-    fn next_tracks(&self, previous_track: &str) -> [&str; 3] {
+    fn next_tracks(&self, previous_track: &str) -> [&'static str; 3] {
         if previous_track == self.connection {
             trace!("Buffer {}: from {} to end", self.id(), previous_track);
             return ["", "", ""];

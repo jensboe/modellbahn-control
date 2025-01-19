@@ -1,3 +1,5 @@
+use defmt::{debug, trace};
+
 use crate::track::{buffer::Buffer, straight::Straight, switch::Switch, Track};
 
 static mut track_layout: [&mut dyn Track; 22] = [
@@ -31,7 +33,80 @@ static mut track_layout: [&mut dyn Track; 22] = [
     &mut Straight::new("D_1a", "C_c", "A_d", 6_000),
 ];
 
-
 pub fn get_track_layout() -> &'static mut [&'static mut dyn Track; 22] {
     unsafe { &mut track_layout }
+}
+
+pub fn find_route(
+    destination_track_id: &str,
+    current_track_id: &str,
+    previous_track_id: &str,
+    mut total_distance: u32,
+) -> u32 {
+    let layout = get_track_layout();
+    let current_track = layout
+        .iter_mut()
+        .find(|track| track.id() == current_track_id)
+        .unwrap();
+
+    total_distance += current_track.length();
+    trace!(
+        "{}: start looking. td: {}",
+        current_track_id,
+        total_distance
+    );
+
+    if current_track_id == destination_track_id {
+        debug!(
+            "{}: destination reached, total_distance: {}",
+            current_track_id, total_distance
+        );
+        return total_distance;
+    }
+    if total_distance > 30_000 {
+        trace!("{}: Route too long", current_track_id);
+        return u32::MAX;
+    }
+
+    let mut min_distance = u32::MAX;
+    for next_track in current_track.next_tracks(previous_track_id).iter() {
+        if *next_track == "" {
+            continue;
+        }
+        let next_track = layout
+            .iter_mut()
+            .find(|track| track.id() == *next_track)
+            .unwrap();
+        trace!("{}: Leaving, go to {}", current_track_id, next_track.id());
+        let current_distance = find_route(
+            destination_track_id,
+            next_track.id(),
+            current_track_id,
+            total_distance,
+        );
+        trace!(
+            "{}: Comming back from {} current td: {}",
+            current_track_id,
+            next_track.id(),
+            current_distance
+        );
+        if current_distance < min_distance {
+            trace!(
+                "{}: found shorter route to {}, old {}, new {}, saving {}",
+                current_track_id,
+                destination_track_id,
+                min_distance,
+                current_distance,
+                (min_distance - current_distance)
+            );
+            min_distance = current_distance;
+        }
+    }
+    trace!(
+        "{}: leaving, shortest path to {} was {}",
+        current_track_id,
+        destination_track_id,
+        min_distance
+    );
+    min_distance
 }

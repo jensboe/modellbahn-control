@@ -1,9 +1,6 @@
 use crate::track::{buffer::Buffer, straight::Straight, switch::Switch, Track};
 
-
-
-
-pub static track_layout: &mut [&mut dyn Track]  = &mut [
+static mut track_layout: [&mut dyn Track; 22] = [
     &mut Switch::new("A_d", "D_1a", "A_c", "A_3a", 100, 100),
     &mut Switch::new("A_c", "A_d", "A_1a", "A_2a", 100, 100),
     &mut Straight::new("A_1a", "A_c", "A_1b", 1_500),
@@ -33,3 +30,8 @@ pub static track_layout: &mut [&mut dyn Track]  = &mut [
 
     &mut Straight::new("D_1a", "C_c", "A_d", 6_000),
 ];
+
+
+pub fn get_track_layout() -> &'static mut [&'static mut dyn Track; 22] {
+    unsafe { &mut track_layout }
+}

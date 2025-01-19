@@ -19,6 +19,7 @@
               "channelNumber": 0,
               "dataFormat": "Defmt",
               "logFormat": "{t:black:>10} {L} {s:werror} {({m} {F}:{l})%dimmed}",
+              "mode": "BlockIfFull"
             }
           ]
         }
@@ -42,6 +43,7 @@
               "channelNumber": 0,
               "dataFormat": "Defmt",
               "logFormat": "{t:black:>10} {L} {s:werror} {({m} {F}:{l})%dimmed}",
+              "mode": "BlockIfFull"
             }
           ]
         }
